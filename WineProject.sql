@@ -1,17 +1,50 @@
 select *
 from [Wine Project]. .[winemag-data_first150k]
 
+use [Wine Project]
+go
+
+SELECT *
+FROM [Wine Project].INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'winemag-data_first150k'
+
+SELECT count(*) as row_count
+FROM [winemag-data_first150k]
+
+select distinct count(column1) as check_dups
+from [winemag-data_first150k]
+
+select distinct count(column1)
+from [winemag-data_first150k]
+
 --Top 10 winery with the best Pinot Noir
-Select distinct top (10) winery,avg(points) as Average_Points, round(avg(price),2) as Average_Price
-from [Wine Project]. .[winemag-data_first150k]
-where variety  = 'Pinot Noir' and price is not null
-group by winery
-order by Average_Points desc
+
 
 --The different types of wine
 SELECT variety, count(variety) as count_variety
 from [Wine Project]. .[winemag-data_first150k]
 group by variety
+
+Select distinct top (10) winery, province, points, price 
+from [Wine Project]. .[winemag-data_first150k]
+where variety  = 'Pinot Noir' and price is not null
+Order by points desc
+
+SELECT distinct top(10) winery, variety, province, points, price
+from [winemag-data_first150k]
+where variety like 'cabernet sauvignon%' and price is not null
+order by points desc
+
+SELECT distinct top(10) winery, variety,province, points, price
+from [winemag-data_first150k]
+where variety like 'Bordeaux%' and price is not null
+order by points desc
+
+--Prices of Bordeaux-style Red Blend wine variety
+select variety,price
+from [Wine Project]. . [winemag-data_first150k]
+where variety = 'Bordeaux-style Red Blend'
+order by price desc
 
 --Best Rated wine variety
 select variety, avg(points) as average_points, round(avg(price),2) as average_price, count(variety) as count
@@ -20,12 +53,6 @@ where price is not null
 group by variety
 having count(variety) >= 10 
 order by average_points desc
-
---Prices of Bordeaux-style Red Blend wine variety
-select variety,price
-from [Wine Project]. . [winemag-data_first150k]
-where variety = 'Bordeaux-style Red Blend'
-order by price desc
 
 --Comparison between average points and average price to variety
 with avgvarietyrating (variety, points, price, counts)
@@ -94,11 +121,15 @@ from sweetwine sweet
 --In conclusion there is a small difference between sweet wines and nonsweet wines by $0.08 
 
 --Finding top 100 different wines that are "Fruity"
+SELECT column1 AS Fruits, column2 AS Vegetables
+FROM Food;
+
+DELETE FROM food
+WHERE column1 = 'Fruits' AND column2 = 'Vegetables'
+
 select top (100) country, province, region_1,region_2, description, points, price, variety, winery, 
 	Count(*) OVER (Partition BY winery)
 from [Wine Project].dbo.[winemag-data_first150k]  wine
-WHERE Exists (select Fruits from [Wine Project]. .food  food
-				Where wine.description like concat('%',food.fruits,'%'))
+WHERE Exists (select column1 as fruits from [Wine Project]. .food  food
+				Where wine.description like concat('%',food.column1,'%'))
 Order by points desc
-
---
