@@ -25,10 +25,10 @@ SELECT variety, count(variety) as count_variety
 from [Wine Project]. .[winemag-data_first150k]
 group by variety
 
-Select distinct top (10) winery, province, points, price 
+Select distinct top (10) winery, province, points, price, DENSE_RANK() OVER(ORDER BY points desc) AS Wine_Ranking
 from [Wine Project]. .[winemag-data_first150k]
 where variety  = 'Pinot Noir' and price is not null
-Order by points desc
+Order by points desc, price desc
 
 SELECT distinct top(10) winery, variety, province, points, price
 from [winemag-data_first150k]
@@ -36,6 +36,21 @@ where variety like 'cabernet sauvignon%' and price is not null
 order by points desc
 
 SELECT distinct top(10) winery, variety,province, points, price
+from [winemag-data_first150k]
+where variety like 'Bordeaux%' and price is not null
+order by points desc
+
+Select distinct top (10) winery, province, points, price, count(province) over( partition by province) as Province_Count
+from [Wine Project]. .[winemag-data_first150k]
+where variety  = 'Pinot Noir' and price is not null
+Order by points desc
+
+SELECT distinct top(10) winery, variety, province, points, price, count(province) over( partition by province) as Province_Count
+from [winemag-data_first150k]
+where variety like 'cabernet sauvignon%' and price is not null
+order by points desc
+
+SELECT distinct top(10) winery, variety,province, points, price, count(province) over( partition by province) as Province_Count
 from [winemag-data_first150k]
 where variety like 'Bordeaux%' and price is not null
 order by points desc
@@ -88,11 +103,19 @@ insert into sweetwine
 	select winery, country, avg(points) as AveragePoints, price , variety
 	from [Wine Project]. .[winemag-data_first150k]
 	where description like '%sweet%'
+	or description like '%sugar%'
+	or description like '%honey%' 
+	or description like '%cand%'
 	group by winery,variety,country,price
 	order by AveragePoints desc
 
 Select *
 From sweetwine
+
+SELECT country, count(country) as country_count
+FROM sweetwine
+GROUP BY country
+ORDER BY country_count desc
 
 --Average Price between sweet wine and nonsweet wine
 DROP table if exists nonsweetwine
@@ -107,29 +130,33 @@ insert into nonsweetwine
 	select winery, country, avg(points) as AveragePoints, price, variety
 	from [Wine Project]. .[winemag-data_first150k]
 	where description not like '%sweet%'
+	or description not like '%sugar%'
+	or description not like '%honey%' 
+	or description not like '%cand%'
 	group by winery,variety,country,price
 	order by AveragePoints desc
 
 select *
 from nonsweetwine
 
+SELECT country, count(country) as country_count
+FROM nonsweetwine
+GROUP BY country
+ORDER BY country_count desc
+
 select round(avg(non.Price),2) as NonsweetAvgPrice, round(avg(sweet.Price),2) as SweetAvgPrice
 from sweetwine sweet
 	Inner join nonsweetwine non
 	on non.variety = sweet.variety
-
---In conclusion there is a small difference between sweet wines and nonsweet wines by $0.08 
+--The price difference between the nonsweet wine versus the sweet wines is about 57 cents. 
 
 --Finding top 100 different wines that are "Fruity"
-SELECT column1 AS Fruits, column2 AS Vegetables
-FROM Food;
+select *
+FROM food
 
-DELETE FROM food
-WHERE column1 = 'Fruits' AND column2 = 'Vegetables'
-
-select top (100) country, province, region_1,region_2, description, points, price, variety, winery, 
+select Distinct top (100) country, province, region_1,region_2, description, points, price, variety, winery, 
 	Count(*) OVER (Partition BY winery)
 from [Wine Project].dbo.[winemag-data_first150k]  wine
-WHERE Exists (select column1 as fruits from [Wine Project]. .food  food
-				Where wine.description like concat('%',food.column1,'%'))
+WHERE Exists (select fruits from [Wine Project]. .food 
+				Where wine.description like concat('%',food.Fruits,'%'))
 Order by points desc
