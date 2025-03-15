@@ -11,11 +11,9 @@ WHERE TABLE_NAME = 'winemag-data_first150k'
 SELECT count(*) as row_count
 FROM [winemag-data_first150k]
 
-select distinct count(column1) as check_dups
+select count(distinct column1) as check_dups
 from [winemag-data_first150k]
 
-select distinct count(column1)
-from [winemag-data_first150k]
 
 --Top 10 winery with the best Pinot Noir
 
@@ -72,14 +70,14 @@ order by average_points desc
 --Comparison between average points and average price to variety
 with avgvarietyrating (variety, points, price, counts)
 as (
-	select variety, avg(points) as average_points, round(avg(price),2) as average_price, count(variety) as count
+	select variety, avg(points) as average_points, round(avg(price),2) as average_price, count(variety) as counts
 	from [Wine Project]. .[winemag-data_first150k]
 	where price is not null 
 	group by variety
 	having count(variety) >= 10 
 	)
 
-select a.variety, a.points, a.price, (points/price) as points_price_ratio
+select a.variety, a.points, a.price, (points/price) as points_price_ratio, counts
 from avgvarietyrating a
 order by points_price_ratio desc
 --There for in conclusion there is a difference between points and price to variety
@@ -154,9 +152,15 @@ from sweetwine sweet
 select *
 FROM food
 
-select Distinct top (100) country, province, region_1,region_2, description, points, price, variety, winery, 
-	Count(*) OVER (Partition BY winery)
+select Distinct country, province, region_1,region_2, description, points, price, variety, winery, 
+	Count(winery) OVER (Partition BY winery) as WineryCount, Count(variety) OVER (Partition BY variety) as VarietyCount
 from [Wine Project].dbo.[winemag-data_first150k]  wine
 WHERE Exists (select fruits from [Wine Project]. .food 
 				Where wine.description like concat('%',food.Fruits,'%'))
 Order by points desc
+
+
+SELECT *, DENSE_RANK() OVER (PARTITION BY country ORDER BY points DESC) as RANK
+FROM [winemag-data_first150k]
+WHERE description like '%black-currant%'
+	or description like '%black currant%'
