@@ -11,3 +11,5 @@ For this project, I used a dataset from Kaggle containing details about various 
  * descriptions
  
 My goal was to explore the wine market and gain insights into different wine varieties. I hope you find this analysis as insightful as I did.
+
+Medium Article: https://medium.com/@russell.wang/analyzing-the-wine-market-using-sql-e9aa2317bac4
